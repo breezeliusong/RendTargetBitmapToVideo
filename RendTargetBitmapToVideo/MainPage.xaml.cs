@@ -51,15 +51,19 @@ namespace RendTargetBitmapToVideo
                     IBuffer pixels = await renderTargetBitmap.GetPixelsAsync();
                     CanvasBitmap bitmap = null;
                     var videoClip = new MediaComposition();
-                    SoftwareBitmap softwareBitmap = new SoftwareBitmap(BitmapPixelFormat.Bgra8, renderTargetBitmap.PixelWidth,
-                        renderTargetBitmap.PixelHeight);
+                    //SoftwareBitmap softwareBitmap = new SoftwareBitmap(BitmapPixelFormat.Bgra8, renderTargetBitmap.PixelWidth,
+                    //    renderTargetBitmap.PixelHeight);
+                    //bitmap = CanvasBitmap.CreateFromSoftwareBitmap(CanvasDevice.GetSharedDevice(), softwareBitmap);
 
-                    //bitmap = CanvasBitmap.CreateFromBytes(CanvasDevice.GetSharedDevice(), pixels,
-                    //renderTargetBitmap.PixelWidth, renderTargetBitmap.PixelHeight, DirectXPixelFormat.B8G8R8A8UIntNormalized);
-                    bitmap = CanvasBitmap.CreateFromSoftwareBitmap(CanvasDevice.GetSharedDevice(), softwareBitmap);
+                    bitmap = CanvasBitmap.CreateFromBytes(CanvasDevice.GetSharedDevice(), pixels,
+                    renderTargetBitmap.PixelWidth, renderTargetBitmap.PixelHeight, DirectXPixelFormat.B8G8R8A8UIntNormalized);
                     StorageFile video2 = await folder.CreateFileAsync("video2" + ".mp4", CreationCollisionOption.ReplaceExisting);
                     MediaClip d = MediaClip.CreateFromSurface(bitmap, TimeSpan.FromSeconds(3));
                     videoClip.Clips.Add(d);
+
+                    //Use these code to work
+                    await videoClip.SaveAsync(video2);
+                    videoClip = await MediaComposition.LoadAsync(video2);
                     var result = await videoClip.RenderToFileAsync(video2);
                     Debug.WriteLine(result.ToString());
                     break;
