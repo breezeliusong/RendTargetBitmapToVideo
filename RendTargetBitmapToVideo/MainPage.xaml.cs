@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
+using System.Threading.Tasks;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
 using Windows.Graphics.DirectX;
@@ -40,6 +41,47 @@ namespace RendTargetBitmapToVideo
         private async void Button_Click(object sender, RoutedEventArgs e)
         {
 
+            List<WriteableBitmap> list = new List<WriteableBitmap>();
+
+            WriteableBitmap bitmap1 = await GetWriteableBitmapAsync(new Uri("ms-appx:///Assets/image.jpg"));
+            WriteableBitmap bitmap2 = await GetWriteableBitmapAsync(new Uri("ms-appx:///Assets/image1.jpg"));
+            list.Add(bitmap1);
+            list.Add(bitmap2);
+            CreateVideoFromWritableBitmapAsync(list);
+
+        }
+        private async Task<WriteableBitmap> GetWriteableBitmapAsync(Uri uri)
+        {
+            var file1 = await StorageFile.GetFileFromApplicationUriAsync(uri);
+            var stream = await file1.OpenReadAsync();
+            WriteableBitmap writeableBitmap = new WriteableBitmap(800, 600);
+            writeableBitmap.SetSource(stream);
+            return writeableBitmap;
+        }
+
+        private async void CreateVideoFromWritableBitmapAsync(List<WriteableBitmap> WBs)
+        {
+            var mediaComposition = new MediaComposition();
+            foreach (WriteableBitmap WB in WBs)
+            {
+                var pixels = WB.PixelBuffer.ToArray();
+                CanvasBitmap bitmap = CanvasBitmap.CreateFromBytes(CanvasDevice.GetSharedDevice(), pixels,
+                        800, 600, DirectXPixelFormat.B8G8R8A8UIntNormalized);
+                MediaClip mediaClip = MediaClip.CreateFromSurface(bitmap, TimeSpan.FromSeconds(1));
+                mediaComposition.Clips.Add(mediaClip);
+            }
+            //Save the video
+            var file =await ApplicationData.Current.LocalFolder.CreateFileAsync("WBVideo.mp4");
+            await mediaComposition.SaveAsync(file);
+            mediaComposition=await MediaComposition.LoadAsync(file);
+            await mediaComposition.RenderToFileAsync(file);
+        }
+
+
+
+        //This works
+        private async void CreateVideoFromIDX3D()
+        {
             for (int i = 0; i < 5; i++)
             {
                 try
